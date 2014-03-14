@@ -101,6 +101,10 @@ function getRandomLetter() {
 
   <div><hr></div>
 
+  <div><em>Currently configured to find word combinations up to 6 cubes. Some browsers are crashing at higher settings.</em></div>
+
+  <div><hr></div>
+
   <div id="output"></div>
 
 </div>
@@ -215,7 +219,7 @@ function getRandomLetter() {
     //  8 letters, cubeList.length = 23, words 283384    ->  safari spins and spins, firefox reports script as unresponsive but completes, no error with chrome
     //  9 letters, cubeList.length = 26, words 720368    ->  firefox & chrome reports script as unresponsive but both complete
     // 10 letters, cubeList.length = 29, words 1626144   ->  chrome dies after reporting unresponsive script several times
-    //                                              firefox reports unresponsive script, only shows the list to 894759 words
+    //                                                       firefox reports unresponsive script, only shows the list to 894759 words
 
     // TODO: remove all duplicate words
     //       remove all invalid words
@@ -223,8 +227,8 @@ function getRandomLetter() {
 
 
 
-    // return up to 7 letter words
-    if (cubeList.length >= 20) {
+    // return up to 6 letter words
+    if (cubeList.length >= 17) {
       return;
     }
 
