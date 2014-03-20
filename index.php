@@ -1,4 +1,24 @@
 <?php
+if ($_POST) {
+  $filecontents = file_get_contents('wordlist.txt');
+  $wordlist = [];
+  $letters[11] = $_POST['cube_11'];
+  $letters[12] = $_POST['cube_12'];
+  $letters[13] = $_POST['cube_13'];
+  $letters[14] = $_POST['cube_14'];
+  $letters[21] = $_POST['cube_21'];
+  $letters[22] = $_POST['cube_22'];
+  $letters[23] = $_POST['cube_23'];
+  $letters[24] = $_POST['cube_24'];
+  $letters[31] = $_POST['cube_31'];
+  $letters[32] = $_POST['cube_32'];
+  $letters[33] = $_POST['cube_33'];
+  $letters[34] = $_POST['cube_34'];
+  $letters[41] = $_POST['cube_41'];
+  $letters[42] = $_POST['cube_42'];
+  $letters[43] = $_POST['cube_43'];
+  $letters[44] = $_POST['cube_44'];
+}
 function getRandomLetter() {
 	$abc = "abcdefghijklmnopqrstuvwxyz";
 	$n = $abc[rand(0,25)];
@@ -7,8 +27,160 @@ function getRandomLetter() {
 	}
 	return $n;
 }
+function solveBoard() {
+  global $wordlist;
+  for ($row = 1; $row <= 4; $row++) {
+    for ($col = 1; $col <= 4; $col++) {
+      addCube($row*10+$col);
+    }
+  }
+  echo 'Count: ' . count($wordlist) . '<br>';
+  sort($wordlist);
+  echo '<pre>' . print_r($wordlist, true) . '</pre>';
+}
+function addWord($cubeSequence) {
+  global $filecontents;
+  global $wordlist;
+  global $letters;
+  $word = '';
+  $cubes = explode(',', $cubeSequence);
+  foreach ($cubes as $cube) {
+    $word = $word . $letters[$cube];
+  }
+  // words have to be 3+ letters
+  if (strlen($word) < 3) return true;
+  // check for word in text file wordlist
+  $searchpartial = '{' . $word;
+  if (strpos($filecontents, $searchpartial) === false) {
+    return false;
+  }
+  $searchfor = '{' . $word . '}';
+  if (strpos($filecontents, $searchfor) === false) {
+    return true;
+  }
+  // check for duplicates
+  if (in_array($word, $wordlist)) return;
+  $wordlist[] = $word;
+}
+function addCube($cubeSequence) {
+  //  smallest number of cubes that can create a valid word is 2 cubes, [qu]+[a]
+  //  2 cubes, strlen =  5, up to 84 words
+  //  3 cubes, strlen =  8, up to 492 words
+  //  4 cubes, strlen = 11, up to 2256 words
+  //  5 cubes, strlen = 14, up to 8968 words
+  //  6 cubes, strlen = 17, up to 31640 words
+  //  7 cubes, strlen = 20, up to 99912 words
+  //  8 cubes, strlen = 23, up to 283384 words
+  //  9 cubes, strlen = 26, up to 720368 words
+  // 10 cubes, strlen = 29, up to 1626144 words
+  // 11 cubes, strlen = 32, up to 3220792 words
+  // 12 cubes, strlen = 35, up to 5531056 words
+  // 13 cubes, strlen = 38, up to 8175576 words
+  // 14 cubes, strlen = 41, up to 10425768 words
+  // 15 cubes, strlen = 44, up to 11686440 words
+  // 16 cubes, strlen = 47, up to 12029624 words
 
+  // TODO: remove all duplicate words
+  //       remove all invalid words
+  //       optimize by having the script quit exploring a branch where no words start with that sequence of letters
 
+  // limit number of cubes
+/*
+  if ( strlen($cubeSequence) >= 29 ) {
+    return;
+  }
+*/
+
+  $lastCube = intval(substr($cubeSequence, -2));
+
+  // check NW
+  $northwest = $lastCube - 11;
+  if ($northwest > 10 && ($northwest % 10) > 0) {
+    if (strpos($cubeSequence, strval($northwest)) === false) {
+      $newSequence = $cubeSequence . ',' . strval($northwest);
+      if (addWord($newSequence)) {
+        addCube($newSequence);
+      }
+    }
+  }
+
+  // check N
+  $north = $lastCube - 10;
+  if ($north > 10) {
+    if (strpos($cubeSequence, strval($north)) === false) {
+      $newSequence = $cubeSequence . ',' . strval($north);
+      if (addWord($newSequence)) {
+        addCube($newSequence);
+      }
+    }
+  }
+
+  // check NE
+  $northeast = $lastCube - 9;
+  if ($northeast > 10 && ($northeast % 10) < 5) {
+    if (strpos($cubeSequence, strval($northeast)) === false) {
+      $newSequence = $cubeSequence . ',' . strval($northeast);
+      if (addWord($newSequence)) {
+        addCube($newSequence);
+      }
+    }
+  }
+
+  // check E
+  $east = $lastCube + 1;
+  if (($east % 10) < 5) {
+    if (strpos($cubeSequence, strval($east)) === false) {
+      $newSequence = $cubeSequence . ',' . strval($east);
+      if (addWord($newSequence)) {
+        addCube($newSequence);
+      }
+    }
+  }
+
+  // check SE
+  $southeast = $lastCube + 11;
+  if ($southeast < 45 && ($southeast % 10) < 5) {
+    if (strpos($cubeSequence, strval($southeast)) === false) {
+      $newSequence = $cubeSequence . ',' . strval($southeast);
+      if (addWord($newSequence)) {
+        addCube($newSequence);
+      }
+    }
+  }
+
+  // check S
+  $south = $lastCube + 10;
+  if ($south < 45) {
+    if (strpos($cubeSequence, strval($south)) === false) {
+      $newSequence = $cubeSequence . ',' . strval($south);
+      if (addWord($newSequence)) {
+        addCube($newSequence);
+      }
+    }
+  }
+
+  // check SW
+  $southwest = $lastCube + 9;
+  if ($southwest < 45 && ($southwest % 10) > 0) {
+    if (strpos($cubeSequence, strval($southwest)) === false) {
+      $newSequence = $cubeSequence . ',' . strval($southwest);
+      if (addWord($newSequence)) {
+        addCube($newSequence);
+      }
+    }
+  }
+
+  // check W
+  $west = $lastCube - 1;
+  if (($west % 10) > 0) {
+    if (strpos($cubeSequence, strval($west)) === false) {
+      $newSequence = $cubeSequence . ',' . strval($west);
+      if (addWord($newSequence)) {
+        addCube($newSequence);
+      }
+    }
+  }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -56,11 +228,16 @@ function getRandomLetter() {
 <body>
 <div class="container">
 
+  <form method="post">
+
   <div class="grid">
 <?php for ($row = 1; $row <= 4; $row++): ?>
-  <?php for ($col = 1; $col <= 4; $col++): ?>
-    <?php $cube[$row][$col] = getRandomLetter(); ?>
-    <select id="select_<?=$row?><?=$col?>" class="entry">
+<?php for ($col = 1; $col <= 4; $col++): ?>
+<?php if ($_POST): ?>
+<?php $cube[$row][$col] = $_POST['cube_' . $row . $col]; ?>
+<?php else: ?>
+<?php $cube[$row][$col] = getRandomLetter(); ?>
+    <select id="select_<?=$row?><?=$col?>" class="entry" name="cube_<?=$row?><?=$col?>">
       <option value="a"<?=($cube[$row][$col] == 'a'?' selected':'')?>>A</option>
       <option value="b"<?=($cube[$row][$col] == 'b'?' selected':'')?>>B</option>
       <option value="c"<?=($cube[$row][$col] == 'c'?' selected':'')?>>C</option>
@@ -88,38 +265,43 @@ function getRandomLetter() {
       <option value="y"<?=($cube[$row][$col] == 'y'?' selected':'')?>>Y</option>
       <option value="z"<?=($cube[$row][$col] == 'z'?' selected':'')?>>Z</option>
     </select>
+<?php endif; ?>
     <img id="cube_<?=$row?><?=$col?>" src="cubes/<?=$cube[$row][$col]?>.jpg">
-  <?php endfor; ?>
+<?php endfor; ?>
+<?php if ($row <> 4): ?>
     <br>
+<?php endif; ?>
 <?php endfor; ?>
   </div>
 
+<?php if (! $_POST): ?>
   <div class="grid">
-    <button type="button" class="btn btn-sm btn-warning" id="reset">Reset</button>
-    <button type="button" class="btn btn-sm btn-success" id="solve">Solve</button>
+    <button type="submit" class="btn btn-lg btn-success" id="solve">Solve</button>
   </div>
+<?php else: ?>
+  <div class="grid">
+    <a href="/boggle"><button type="button" class="btn btn-lg btn-warning" id="reset">Reset</button></a>
+  </div>
+<?php endif; ?>
+
+  </form>
 
   <div><hr></div>
 
-  <div><em>Currently configured to find word combinations up to 6 cubes. Some browsers are crashing at higher settings.</em></div>
-
-  <div><hr></div>
-
-  <div id="output"></div>
+  <div id="output">
+<?php
+if ($_POST):
+  solveBoard();
+endif;
+?>
+  </div>
 
 </div>
 
 <script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
 <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+<?php if (!$_POST): ?>
 <script type="text/javascript">
-
-  var wordlist = [];
-  var cubes = [];
-
-  $('#reset').click(resetOutput);
-
-  $('#solve').click(solveGrid);
-
   $('img').click(function() {
     var id_name = $(this).attr('id');
     var id_number = id_name.substring(id_name.length - 2);
@@ -128,7 +310,6 @@ function getRandomLetter() {
     $(cube).css({'display':'none'});
     $(select).css({'display':'inline-block'});
   });
-
   $('select').click(function() {
     var id_name = $(this).attr('id');
     var id_number = id_name.substring(id_name.length - 2);
@@ -138,7 +319,6 @@ function getRandomLetter() {
     $(cube).css({'display':'inline'});
     $(select).css({'display':'none'});
   });
-
   $('select').change(function() {
     var id_name = $(this).attr('id');
     var id_number = id_name.substring(id_name.length - 2);
@@ -149,165 +329,8 @@ function getRandomLetter() {
     $(select).css({'display':'none'});
     resetOutput();
   });
-
-  function resetOutput() {
-    $('#output').text('');
-  }
-
-  function solveGrid()
-  {
-    // assign DOM values to array
-    cubes[11] = $('#select_11').val();
-    cubes[12] = $('#select_12').val();
-    cubes[13] = $('#select_13').val();
-    cubes[14] = $('#select_14').val();
-    cubes[21] = $('#select_21').val();
-    cubes[22] = $('#select_22').val();
-    cubes[23] = $('#select_23').val();
-    cubes[24] = $('#select_24').val();
-    cubes[31] = $('#select_31').val();
-    cubes[32] = $('#select_32').val();
-    cubes[33] = $('#select_33').val();
-    cubes[34] = $('#select_34').val();
-    cubes[41] = $('#select_41').val();
-    cubes[42] = $('#select_42').val();
-    cubes[43] = $('#select_43').val();
-    cubes[44] = $('#select_44').val();
-
-    // start output
-    $('#output').append('[' + cubes[11] + '][' + cubes[12] + '][' + cubes[13] + '][' + cubes[14] + ']<br>');
-    $('#output').append('[' + cubes[21] + '][' + cubes[22] + '][' + cubes[23] + '][' + cubes[24] + ']<br>');
-    $('#output').append('[' + cubes[31] + '][' + cubes[32] + '][' + cubes[33] + '][' + cubes[34] + ']<br>');
-    $('#output').append('[' + cubes[41] + '][' + cubes[42] + '][' + cubes[43] + '][' + cubes[44] + ']<br>');
-    $('#output').append('-=-=-=-=-=-=-=-=-=-=-=-<br>');
-
-    // loop thru each beginning cube
-    for (var row = 1; row <= 4; row++) {
-      for (var col = 1; col <= 4; col++) {
-        var id = (row * 10 + col).toString();
-        var letter = $('#select_' + id).val();
-        addCube(id);
-      }
-    }
-
-    // final output
-    $('#output').append(wordlist.length.toString() + '<br>');
-    for (var x in wordlist) {
-      $('#output').append((parseInt(x) + 1).toString() + ') ' + wordlist[x] + '<br>');
-    }
-
-  }
-
-  function addWord(newCubeList)
-  {
-    var thisWord = '';
-    var thisCube = newCubeList.split(',');
-    for (var x in thisCube) {
-      thisWord = thisWord + cubes[thisCube[x]];
-    }
-    wordlist.push(thisWord);
-  }
-
-  function addCube(cubeList)
-  {
-    //  2 letters, cubeList.length =  5, words     84
-    //  3 letters, cubeList.length =  8, words    492
-    //  4 letters, cubeList.length = 11, words   2256
-    //  5 letters, cubeList.length = 14, words   8968
-    //  6 letters, cubeList.length = 17, words  31640
-    //  7 letters, cubeList.length = 20, words  99912    ->  safari spins a beach ball for 5 minutes before completing, both firefox and chrome complete
-    //  8 letters, cubeList.length = 23, words 283384    ->  safari spins and spins, firefox reports script as unresponsive but completes, no error with chrome
-    //  9 letters, cubeList.length = 26, words 720368    ->  firefox & chrome reports script as unresponsive but both complete
-    // 10 letters, cubeList.length = 29, words 1626144   ->  chrome dies after reporting unresponsive script several times
-    //                                                       firefox reports unresponsive script, only shows the list to 894759 words
-
-    // TODO: remove all duplicate words
-    //       remove all invalid words
-    //       optimize by having the script quit exploring a branch where no words start with that sequence of letters
-
-
-
-    // return up to 6 letter words
-    if (cubeList.length >= 17) {
-      return;
-    }
-
-    var lastCube = parseInt(cubeList.substring(cubeList.length - 2));
-
-    // check NW
-    var northwest = lastCube - 11;
-    if (northwest > 10 && (northwest % 10) > 0) {
-      if (cubeList.search(northwest.toString()) === -1) {
-        addWord(cubeList + ',' + northwest.toString());
-        addCube(cubeList + ',' + northwest.toString());
-      }
-    }
-
-    // check N
-    var north = lastCube - 10;
-    if (north > 10) {
-      if (cubeList.search(north.toString()) === -1) {
-        addWord(cubeList + ',' + north.toString());
-        addCube(cubeList + ',' + north.toString());
-      }
-    }
-
-    // check NE
-    var northeast = lastCube - 9;
-    if (northeast > 10 && (northeast % 10) < 5) {
-      if (cubeList.search(northeast.toString()) === -1) {
-        addWord(cubeList + ',' + northeast.toString());
-        addCube(cubeList + ',' + northeast.toString());
-      }
-    }
-
-    // check E
-    var east = lastCube + 1;
-    if ((east % 10) < 5) {
-      if (cubeList.search(east.toString()) === -1) {
-        addWord(cubeList + ',' + east.toString());
-        addCube(cubeList + ',' + east.toString());
-      }
-    }
-
-    // check SE
-    var southeast = lastCube + 11;
-    if (southeast < 45 && (southeast % 10) < 5) {
-      if (cubeList.search(southeast.toString()) === -1) {
-        addWord(cubeList + ',' + southeast.toString());
-        addCube(cubeList + ',' + southeast.toString());
-      }
-    }
-
-    // check S
-    var south = lastCube + 10;
-    if (south < 45) {
-      if (cubeList.search(south.toString()) === -1) {
-        addWord(cubeList + ',' + south.toString());
-        addCube(cubeList + ',' + south.toString());
-      }
-    }
-
-    // check SW
-    var southwest = lastCube + 9;
-    if (southwest < 45 && (southwest % 10) > 0) {
-      if (cubeList.search(southwest.toString()) === -1) {
-        addWord(cubeList + ',' + southwest.toString());
-        addCube(cubeList + ',' + southwest.toString());
-      }
-    }
-
-    // check W
-    var west = lastCube - 1;
-    if ((west % 10) > 0) {
-      if (cubeList.search(west.toString()) === -1) {
-        addWord(cubeList + ',' + west.toString());
-        addCube(cubeList + ',' + west.toString());
-      }
-    }
-  }
-
 </script>
+<?php endif; ?>
 
 </body>
 </html>
