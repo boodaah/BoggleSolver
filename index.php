@@ -49,18 +49,20 @@ function addWord($cubeSequence) {
   }
   // words have to be 3+ letters
   if (strlen($word) < 3) return true;
-  // check for word in text file wordlist
+  // if partial word doesn't exist, quit checking that branch
   $searchpartial = '{' . $word;
   if (strpos($filecontents, $searchpartial) === false) {
     return false;
   }
+  // search for word in wordlist
   $searchfor = '{' . $word . '}';
   if (strpos($filecontents, $searchfor) === false) {
     return true;
   }
   // check for duplicates
-  if (in_array($word, $wordlist)) return;
+  if (in_array($word, $wordlist)) return true;
   $wordlist[] = $word;
+  return true;
 }
 function addCube($cubeSequence) {
   //  smallest number of cubes that can create a valid word is 2 cubes, [qu]+[a]
