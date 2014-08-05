@@ -202,7 +202,6 @@ function addCube($cubeSequence) {
     .container {
       width: 320px;
       padding: 0;
-
     }
     .btn {
       margin-right: 10px;
